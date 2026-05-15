@@ -34,9 +34,6 @@
 
 -   Attached images (if any) are relative to the root of the project.
 -   Aktuální MVP zobrazuje inline validační chyby ve formulářích pro zadání daňových dokladů.
--   Aktuální MVP obsahuje i AI asistenta nad zadanými daty, který běží server-side přes OpenAI Agents SDK a vyžaduje `OPENAI_API_KEY`.
--   Pokud se mění funkcionalita AI asistenta, je potřeba udržet konzistentní i texty o ochraně dat, protože při dotazu už data nezůstávají pouze v lokálním prohlížeči.
--   Projekt má Playwright e2e testy v `e2e/`; při změně hlavních uživatelských flow je potřeba je udržet aktuální.
 
 
 <!--
