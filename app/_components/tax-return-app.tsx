@@ -34,6 +34,14 @@ const DOCUMENT_KIND_LABELS: Record<TaxDocumentKind, string> = {
   received: "Přijaté doklady",
 };
 
+/** Draft fields that surface inline validation feedback in the UI. */
+const TAX_DOCUMENT_DRAFT_VALIDATION_FIELD_NAMES = [
+  "documentNumber",
+  "partnerName",
+  "taxableDate",
+  "baseAmount",
+] as const;
+
 /** Draft document values used by the input forms. */
 interface TaxDocumentDraft {
   documentNumber: string;
@@ -42,6 +50,18 @@ interface TaxDocumentDraft {
   description: string;
   baseAmount: string;
   vatRatePercent: VatRatePercent;
+}
+
+/** Field names that can contain a validation error message. */
+type TaxDocumentDraftValidationFieldName =
+  (typeof TAX_DOCUMENT_DRAFT_VALIDATION_FIELD_NAMES)[number];
+
+/** Inline validation messages for the draft document form. */
+interface TaxDocumentDraftValidationErrors {
+  documentNumber?: string;
+  partnerName?: string;
+  taxableDate?: string;
+  baseAmount?: string;
 }
 
 /** Props for the repeated summary card component. */
@@ -71,6 +91,107 @@ function createEmptyTaxDocumentDraft(): TaxDocumentDraft {
     baseAmount: "",
     vatRatePercent: 21,
   };
+}
+
+/**
+ * Creates an empty validation state for a draft document form.
+ *
+ * @returns Empty validation message map.
+ */
+function createEmptyTaxDocumentDraftValidationErrors(): TaxDocumentDraftValidationErrors {
+  return {};
+}
+
+/**
+ * Parses the base amount from the current draft form.
+ *
+ * @param baseAmount Raw base amount from the input field.
+ * @returns Parsed numeric amount.
+ */
+function parseTaxDocumentDraftBaseAmount(baseAmount: string): number {
+  return Number(baseAmount.replace(",", "."));
+}
+
+/**
+ * Checks whether a draft field participates in inline validation.
+ *
+ * @param fieldName Draft field to check.
+ * @returns `true` when the field has a dedicated validation message slot.
+ */
+function isTaxDocumentDraftValidationFieldName(
+  fieldName: keyof TaxDocumentDraft,
+): fieldName is TaxDocumentDraftValidationFieldName {
+  return TAX_DOCUMENT_DRAFT_VALIDATION_FIELD_NAMES.includes(
+    fieldName as TaxDocumentDraftValidationFieldName,
+  );
+}
+
+/**
+ * Validates the draft document form and returns field-level feedback.
+ *
+ * @param taxDocumentDraft Draft values entered by the user.
+ * @returns Validation messages for invalid fields.
+ */
+function validateTaxDocumentDraft(
+  taxDocumentDraft: TaxDocumentDraft,
+): TaxDocumentDraftValidationErrors {
+  const validationErrors: TaxDocumentDraftValidationErrors = {};
+  const parsedBaseAmount = parseTaxDocumentDraftBaseAmount(
+    taxDocumentDraft.baseAmount,
+  );
+
+  if (!taxDocumentDraft.documentNumber.trim()) {
+    validationErrors.documentNumber = "Vyplňte číslo dokladu.";
+  }
+
+  if (!taxDocumentDraft.partnerName.trim()) {
+    validationErrors.partnerName = "Vyplňte partnera.";
+  }
+
+  if (!taxDocumentDraft.taxableDate) {
+    validationErrors.taxableDate = "Vyplňte DUZP.";
+  }
+
+  if (!taxDocumentDraft.baseAmount.trim()) {
+    validationErrors.baseAmount = "Vyplňte základ daně.";
+  } else if (!Number.isFinite(parsedBaseAmount)) {
+    validationErrors.baseAmount = "Zadejte platný základ daně.";
+  } else if (parsedBaseAmount < 0) {
+    validationErrors.baseAmount = "Základ daně nemůže být záporný.";
+  }
+
+  return validationErrors;
+}
+
+/**
+ * Tells whether the draft validation state contains any visible error.
+ *
+ * @param validationErrors Draft validation messages.
+ * @returns `true` when at least one field is invalid.
+ */
+function hasTaxDocumentDraftValidationErrors(
+  validationErrors: TaxDocumentDraftValidationErrors,
+): boolean {
+  return TAX_DOCUMENT_DRAFT_VALIDATION_FIELD_NAMES.some(
+    (fieldName) => validationErrors[fieldName] !== undefined,
+  );
+}
+
+/**
+ * Returns input classes that highlight invalid draft fields.
+ *
+ * @param validationErrorMessage Validation message for the current field.
+ * @returns Tailwind class list for the form control.
+ */
+function getTaxDocumentDraftInputClassName(
+  validationErrorMessage?: string,
+): string {
+  return [
+    "w-full rounded-2xl px-4 py-3 outline-none transition",
+    validationErrorMessage
+      ? "border border-rose-300 bg-rose-50 focus:border-rose-400"
+      : "border border-slate-200 focus:border-slate-400",
+  ].join(" ");
 }
 
 /**
@@ -209,6 +330,11 @@ export default function TaxReturnApp() {
     issued: createEmptyTaxDocumentDraft(),
     received: createEmptyTaxDocumentDraft(),
   });
+  const [taxDocumentDraftValidationErrors, setTaxDocumentDraftValidationErrors] =
+    useState<Record<TaxDocumentKind, TaxDocumentDraftValidationErrors>>({
+      issued: createEmptyTaxDocumentDraftValidationErrors(),
+      received: createEmptyTaxDocumentDraftValidationErrors(),
+    });
   const [isStorageReady, setIsStorageReady] = useState(false);
   const [storageStatusMessage, setStorageStatusMessage] = useState(
     "Načítám lokálně uložená data…",
@@ -298,25 +424,40 @@ export default function TaxReturnApp() {
         [fieldName]: fieldValue,
       },
     }));
+
+    if (isTaxDocumentDraftValidationFieldName(fieldName)) {
+      setTaxDocumentDraftValidationErrors((currentValidationErrors) => {
+        if (!currentValidationErrors[kind][fieldName]) {
+          return currentValidationErrors;
+        }
+
+        return {
+          ...currentValidationErrors,
+          [kind]: {
+            ...currentValidationErrors[kind],
+            [fieldName]: undefined,
+          },
+        };
+      });
+    }
   }
 
   function handleAddTaxDocument(kind: TaxDocumentKind) {
     const draft = taxDocumentDrafts[kind];
-    const parsedBaseAmount = Number(draft.baseAmount.replace(",", "."));
+    const validationErrors = validateTaxDocumentDraft(draft);
 
-    if (
-      !draft.documentNumber.trim() ||
-      !draft.partnerName.trim() ||
-      !draft.taxableDate ||
-      !Number.isFinite(parsedBaseAmount) ||
-      parsedBaseAmount < 0
-    ) {
+    if (hasTaxDocumentDraftValidationErrors(validationErrors)) {
+      setTaxDocumentDraftValidationErrors((currentValidationErrors) => ({
+        ...currentValidationErrors,
+        [kind]: validationErrors,
+      }));
       setStorageStatusMessage(
-        "Pro přidání dokladu vyplňte číslo dokladu, partnera, DUZP a platný základ daně.",
+        "Formulář dokladu obsahuje chyby. Opravte zvýrazněná pole a zkuste to znovu.",
       );
       return;
     }
 
+    const parsedBaseAmount = parseTaxDocumentDraftBaseAmount(draft.baseAmount);
     const nextTaxDocument: TaxDocument = {
       id: `${kind}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
       kind,
@@ -335,6 +476,10 @@ export default function TaxReturnApp() {
     setTaxDocumentDrafts((currentDrafts) => ({
       ...currentDrafts,
       [kind]: createEmptyTaxDocumentDraft(),
+    }));
+    setTaxDocumentDraftValidationErrors((currentValidationErrors) => ({
+      ...currentValidationErrors,
+      [kind]: createEmptyTaxDocumentDraftValidationErrors(),
     }));
     setStorageStatusMessage(
       `${DOCUMENT_KIND_LABELS[kind]} byly aktualizovány a uložené lokálně.`,
@@ -365,6 +510,10 @@ export default function TaxReturnApp() {
     setTaxDocumentDrafts({
       issued: createEmptyTaxDocumentDraft(),
       received: createEmptyTaxDocumentDraft(),
+    });
+    setTaxDocumentDraftValidationErrors({
+      issued: createEmptyTaxDocumentDraftValidationErrors(),
+      received: createEmptyTaxDocumentDraftValidationErrors(),
     });
     setStorageStatusMessage("Lokálně uložená data byla smazána.");
   }
@@ -530,151 +679,221 @@ export default function TaxReturnApp() {
               ["issued", issuedTaxDocuments],
               ["received", receivedTaxDocuments],
             ] as const
-          ).map(([kind, taxDocuments]) => (
-            <article
-              key={kind}
-              className="rounded-3xl bg-white p-6 shadow-sm"
-            >
-              <div className="space-y-2">
-                <h2 className="text-2xl font-semibold tracking-tight">
-                  {DOCUMENT_KIND_LABELS[kind]}
-                </h2>
-                <p className="text-sm leading-6 text-slate-600">
-                  Přidejte běžné tuzemské doklady. Základ daně a DPH se z nich
-                  promítnou do souhrnu níže.
-                </p>
-              </div>
+          ).map(([kind, taxDocuments]) => {
+            const validationErrors = taxDocumentDraftValidationErrors[kind];
+            const isDraftInvalid =
+              hasTaxDocumentDraftValidationErrors(validationErrors);
 
-              <div className="mt-6 grid gap-4 md:grid-cols-2">
-                <label className="space-y-2">
-                  <span className="text-sm font-medium text-slate-700">
-                    Číslo dokladu
-                  </span>
-                  <input
-                    value={taxDocumentDrafts[kind].documentNumber}
-                    onChange={(event) =>
-                      updateTaxDocumentDraftField(
-                        kind,
-                        "documentNumber",
-                        event.target.value,
-                      )
-                    }
-                    className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-slate-400"
-                    placeholder="2026-001"
-                  />
-                </label>
-                <label className="space-y-2">
-                  <span className="text-sm font-medium text-slate-700">
-                    Partner
-                  </span>
-                  <input
-                    value={taxDocumentDrafts[kind].partnerName}
-                    onChange={(event) =>
-                      updateTaxDocumentDraftField(
-                        kind,
-                        "partnerName",
-                        event.target.value,
-                      )
-                    }
-                    className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-slate-400"
-                    placeholder="Dodavatel nebo odběratel"
-                  />
-                </label>
-                <label className="space-y-2">
-                  <span className="text-sm font-medium text-slate-700">DUZP</span>
-                  <input
-                    type="date"
-                    value={taxDocumentDrafts[kind].taxableDate}
-                    onChange={(event) =>
-                      updateTaxDocumentDraftField(
-                        kind,
-                        "taxableDate",
-                        event.target.value,
-                      )
-                    }
-                    className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-slate-400"
-                  />
-                </label>
-                <label className="space-y-2">
-                  <span className="text-sm font-medium text-slate-700">
-                    Základ daně
-                  </span>
-                  <input
-                    inputMode="decimal"
-                    value={taxDocumentDrafts[kind].baseAmount}
-                    onChange={(event) =>
-                      updateTaxDocumentDraftField(
-                        kind,
-                        "baseAmount",
-                        event.target.value,
-                      )
-                    }
-                    className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-slate-400"
-                    placeholder="10000"
-                  />
-                </label>
-                <label className="space-y-2 md:col-span-2">
-                  <span className="text-sm font-medium text-slate-700">
-                    Poznámka
-                  </span>
-                  <input
-                    value={taxDocumentDrafts[kind].description}
-                    onChange={(event) =>
-                      updateTaxDocumentDraftField(
-                        kind,
-                        "description",
-                        event.target.value,
-                      )
-                    }
-                    className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-slate-400"
-                    placeholder="Např. vývoj software nebo kancelářské potřeby"
-                  />
-                </label>
-                <label className="space-y-2 md:col-span-2">
-                  <span className="text-sm font-medium text-slate-700">
-                    Sazba DPH
-                  </span>
-                  <select
-                    value={taxDocumentDrafts[kind].vatRatePercent}
-                    onChange={(event) =>
-                      updateTaxDocumentDraftField(
-                        kind,
-                        "vatRatePercent",
-                        Number(event.target.value) as VatRatePercent,
-                      )
-                    }
-                    className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-slate-400"
-                  >
-                    {VAT_RATE_OPTIONS.map((vatRateOption) => (
-                      <option
-                        key={vatRateOption.value}
-                        value={vatRateOption.value}
+            return (
+              <article key={kind} className="rounded-3xl bg-white p-6 shadow-sm">
+                <div className="space-y-2">
+                  <h2 className="text-2xl font-semibold tracking-tight">
+                    {DOCUMENT_KIND_LABELS[kind]}
+                  </h2>
+                  <p className="text-sm leading-6 text-slate-600">
+                    Přidejte běžné tuzemské doklady. Základ daně a DPH se z nich
+                    promítnou do souhrnu níže.
+                  </p>
+                </div>
+
+                <div className="mt-6 grid gap-4 md:grid-cols-2">
+                  <label className="space-y-2">
+                    <span className="text-sm font-medium text-slate-700">
+                      Číslo dokladu
+                    </span>
+                    <input
+                      value={taxDocumentDrafts[kind].documentNumber}
+                      onChange={(event) =>
+                        updateTaxDocumentDraftField(
+                          kind,
+                          "documentNumber",
+                          event.target.value,
+                        )
+                      }
+                      aria-invalid={validationErrors.documentNumber !== undefined}
+                      aria-describedby={
+                        validationErrors.documentNumber
+                          ? `${kind}-document-number-error`
+                          : undefined
+                      }
+                      className={getTaxDocumentDraftInputClassName(
+                        validationErrors.documentNumber,
+                      )}
+                      placeholder="2026-001"
+                    />
+                    {validationErrors.documentNumber && (
+                      <p
+                        id={`${kind}-document-number-error`}
+                        className="text-sm text-rose-700"
                       >
-                        {vatRateOption.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
+                        {validationErrors.documentNumber}
+                      </p>
+                    )}
+                  </label>
+                  <label className="space-y-2">
+                    <span className="text-sm font-medium text-slate-700">
+                      Partner
+                    </span>
+                    <input
+                      value={taxDocumentDrafts[kind].partnerName}
+                      onChange={(event) =>
+                        updateTaxDocumentDraftField(
+                          kind,
+                          "partnerName",
+                          event.target.value,
+                        )
+                      }
+                      aria-invalid={validationErrors.partnerName !== undefined}
+                      aria-describedby={
+                        validationErrors.partnerName
+                          ? `${kind}-partner-name-error`
+                          : undefined
+                      }
+                      className={getTaxDocumentDraftInputClassName(
+                        validationErrors.partnerName,
+                      )}
+                      placeholder="Dodavatel nebo odběratel"
+                    />
+                    {validationErrors.partnerName && (
+                      <p
+                        id={`${kind}-partner-name-error`}
+                        className="text-sm text-rose-700"
+                      >
+                        {validationErrors.partnerName}
+                      </p>
+                    )}
+                  </label>
+                  <label className="space-y-2">
+                    <span className="text-sm font-medium text-slate-700">DUZP</span>
+                    <input
+                      type="date"
+                      value={taxDocumentDrafts[kind].taxableDate}
+                      onChange={(event) =>
+                        updateTaxDocumentDraftField(
+                          kind,
+                          "taxableDate",
+                          event.target.value,
+                        )
+                      }
+                      aria-invalid={validationErrors.taxableDate !== undefined}
+                      aria-describedby={
+                        validationErrors.taxableDate
+                          ? `${kind}-taxable-date-error`
+                          : undefined
+                      }
+                      className={getTaxDocumentDraftInputClassName(
+                        validationErrors.taxableDate,
+                      )}
+                    />
+                    {validationErrors.taxableDate && (
+                      <p
+                        id={`${kind}-taxable-date-error`}
+                        className="text-sm text-rose-700"
+                      >
+                        {validationErrors.taxableDate}
+                      </p>
+                    )}
+                  </label>
+                  <label className="space-y-2">
+                    <span className="text-sm font-medium text-slate-700">
+                      Základ daně
+                    </span>
+                    <input
+                      inputMode="decimal"
+                      value={taxDocumentDrafts[kind].baseAmount}
+                      onChange={(event) =>
+                        updateTaxDocumentDraftField(
+                          kind,
+                          "baseAmount",
+                          event.target.value,
+                        )
+                      }
+                      aria-invalid={validationErrors.baseAmount !== undefined}
+                      aria-describedby={
+                        validationErrors.baseAmount
+                          ? `${kind}-base-amount-error`
+                          : undefined
+                      }
+                      className={getTaxDocumentDraftInputClassName(
+                        validationErrors.baseAmount,
+                      )}
+                      placeholder="10000"
+                    />
+                    {validationErrors.baseAmount && (
+                      <p
+                        id={`${kind}-base-amount-error`}
+                        className="text-sm text-rose-700"
+                      >
+                        {validationErrors.baseAmount}
+                      </p>
+                    )}
+                  </label>
+                  <label className="space-y-2 md:col-span-2">
+                    <span className="text-sm font-medium text-slate-700">
+                      Poznámka
+                    </span>
+                    <input
+                      value={taxDocumentDrafts[kind].description}
+                      onChange={(event) =>
+                        updateTaxDocumentDraftField(
+                          kind,
+                          "description",
+                          event.target.value,
+                        )
+                      }
+                      className={getTaxDocumentDraftInputClassName()}
+                      placeholder="Např. vývoj software nebo kancelářské potřeby"
+                    />
+                  </label>
+                  <label className="space-y-2 md:col-span-2">
+                    <span className="text-sm font-medium text-slate-700">
+                      Sazba DPH
+                    </span>
+                    <select
+                      value={taxDocumentDrafts[kind].vatRatePercent}
+                      onChange={(event) =>
+                        updateTaxDocumentDraftField(
+                          kind,
+                          "vatRatePercent",
+                          Number(event.target.value) as VatRatePercent,
+                        )
+                      }
+                      className={getTaxDocumentDraftInputClassName()}
+                    >
+                      {VAT_RATE_OPTIONS.map((vatRateOption) => (
+                        <option key={vatRateOption.value} value={vatRateOption.value}>
+                          {vatRateOption.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
 
-              <div className="mt-4 flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => handleAddTaxDocument(kind)}
-                  className="rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
-                >
-                  Přidat doklad
-                </button>
-              </div>
+                {isDraftInvalid && (
+                  <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                    Opravte zvýrazněná pole a pak doklad znovu přidejte.
+                  </div>
+                )}
 
-              <div className="mt-6">
-                <DocumentTable
-                  taxDocuments={taxDocuments}
-                  onDelete={handleDeleteTaxDocument}
-                />
-              </div>
-            </article>
-          ))}
+                <div className="mt-4 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => handleAddTaxDocument(kind)}
+                    className="rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
+                  >
+                    Přidat doklad
+                  </button>
+                </div>
+
+                <div className="mt-6">
+                  <DocumentTable
+                    taxDocuments={taxDocuments}
+                    onDelete={handleDeleteTaxDocument}
+                  />
+                </div>
+              </article>
+            );
+          })}
         </section>
 
         <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">

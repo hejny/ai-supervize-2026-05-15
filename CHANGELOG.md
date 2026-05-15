@@ -6,3 +6,4 @@
 - Added local browser persistence for company data, documents, and computed tax return state.
 - Added VAT and corporate income tax summaries for common, non-advanced scenarios.
 - Added documentation for the MVP scope and future OCR/XML integration direction.
+- Added inline validation feedback for incomplete or invalid tax document forms.

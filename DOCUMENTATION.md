@@ -12,6 +12,7 @@ Tato aplikace je MVP pro jednu českou s.r.o. Uživatel zadává vydané a přij
 
 - správa jedné firmy,
 - zadání vydaných a přijatých dokladů,
+- okamžitá validační zpětná vazba u nevyplněných nebo neplatných polí dokladů,
 - výpočet základu daně, DPH a celkové částky na dokladech,
 - výpočet DPH na výstupu, DPH na vstupu a výsledné bilance,
 - výpočet výnosů, nákladů, daňového základu a daně z příjmů právnických osob,

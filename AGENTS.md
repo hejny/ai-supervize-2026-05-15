@@ -33,6 +33,7 @@
 ## Additional context
 
 -   Attached images (if any) are relative to the root of the project.
+-   Aktuální MVP zobrazuje inline validační chyby ve formulářích pro zadání daňových dokladů.
 
 
 <!--
