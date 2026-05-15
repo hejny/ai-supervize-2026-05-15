@@ -1,0 +1,12 @@
+{
+    "autokill": true,
+    "terminals": [
+        {
+            "name": "Run app locally",
+            "command": "npm run dev",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        }
+    ]
+}
