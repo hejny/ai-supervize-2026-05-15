@@ -36,6 +36,7 @@
 -   Aktuální MVP zobrazuje inline validační chyby ve formulářích pro zadání daňových dokladů.
 -   Aktuální MVP obsahuje i AI asistenta nad zadanými daty, který běží server-side přes OpenAI Agents SDK a vyžaduje `OPENAI_API_KEY`.
 -   Pokud se mění funkcionalita AI asistenta, je potřeba udržet konzistentní i texty o ochraně dat, protože při dotazu už data nezůstávají pouze v lokálním prohlížeči.
+-   Projekt má Playwright e2e testy v `e2e/`; při změně hlavních uživatelských flow je potřeba je udržet aktuální.
 
 
 <!--
@@ -70,6 +71,7 @@
 -   When writing multiline strings, use `spaceTrim` utility.
 -   Do only the change described in the prompt. Do not add any additional features or make any additional changes that are not described there.
     -   If you find some critical issue that is not described in the prompt, report it to `./AGENT_REPORT.md` in the root of the project.
+-   `npm test` now includes Playwright e2e coverage, so keep the suite green and install Chromium with `npx playwright install chromium` after fresh dependency installs.
 
 
 

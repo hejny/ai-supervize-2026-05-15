@@ -58,6 +58,12 @@ Tato aplikace je MVP pro jednu českou s.r.o. Uživatel zadává vydané a přij
 - AI odpovědi jsou pouze informativní a respektují omezený scope tohoto MVP,
 - pokud `OPENAI_API_KEY` chybí, panel zůstane v UI dostupný, ale odpověď se nevygeneruje a uživatel uvidí chybovou hlášku.
 
+## Testování
+
+- `npm test` nově spouští lint, produkční build a Playwright e2e testy nad běžící aplikací,
+- e2e sada pokrývá inline validaci formulářů dokladů, přepočet souhrnů, lokální perzistenci po reloadu a chybový fallback AI asistenta bez `OPENAI_API_KEY`,
+- po čerstvém `npm install` je potřeba jednorázově nainstalovat prohlížeč pro Playwright pomocí `npx playwright install chromium`.
+
 ## Budoucí rozšíření
 
 Architektura MVP odděluje:
