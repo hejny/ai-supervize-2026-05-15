@@ -8,6 +8,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ## How to Contribute
 
 -   **Add changes in [Changelog](CHANGELOG.md)**
+-   **Keep the [Changelog](DOCUMENTATION.md)** up to date with the latest changes and features.
 -   **Test your changes** to ensure they work as expected, use `npm test`
 
 ## Code Style
