@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import AiTaxAssistantPanel from "@/app/_components/ai-tax-assistant-panel";
 import type {
   TaxApplicationState,
   TaxDocument,
@@ -533,7 +534,8 @@ export default function TaxReturnApp() {
               <p className="text-base leading-7 text-slate-300">
                 Zadejte vydané a přijaté doklady, aplikace spočítá základní DPH a
                 připraví jednoduchý náhled daňového přiznání. Vše se ukládá pouze
-                lokálně v tomto prohlížeči.
+                lokálně v tomto prohlížeči, pouze při použití AI asistenta se
+                aktuální data odešlou na server ke zpracování odpovědi.
               </p>
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-200">
@@ -1013,6 +1015,8 @@ export default function TaxReturnApp() {
             </div>
           </article>
         </section>
+
+        <AiTaxAssistantPanel taxApplicationState={taxApplicationState} />
 
         <section className="rounded-3xl border border-dashed border-slate-300 bg-white p-6 shadow-sm">
           <h2 className="text-2xl font-semibold tracking-tight">

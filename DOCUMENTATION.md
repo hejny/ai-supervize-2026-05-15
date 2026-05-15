@@ -16,14 +16,16 @@ Tato aplikace je MVP pro jednu českou s.r.o. Uživatel zadává vydané a přij
 - výpočet základu daně, DPH a celkové částky na dokladech,
 - výpočet DPH na výstupu, DPH na vstupu a výsledné bilance,
 - výpočet výnosů, nákladů, daňového základu a daně z příjmů právnických osob,
-- automatické lokální ukládání přes `localStorage`.
+- automatické lokální ukládání přes `localStorage`,
+- AI asistenta pro dotazy nad aktuálním profilem firmy, doklady a vypočtenými souhrny přes OpenAI Agents SDK.
 
 ## Co MVP záměrně neřeší
 
 - složité účetní a daňové případy,
 - daňové ztráty, speciální odpočty a další úpravy základu daně,
 - oficiální elektronické podání,
-- OCR z dokladů a skenování mobilem.
+- OCR z dokladů a skenování mobilem,
+- plnohodnotné daňové poradenství nebo právně závazné výstupy od AI asistenta.
 
 ## Výpočty
 
@@ -48,6 +50,13 @@ Tato aplikace je MVP pro jednu českou s.r.o. Uživatel zadává vydané a přij
 - používá se klíč `tax-return-mvp-state-v1`,
 - ukládá se profil firmy i zadané doklady,
 - po znovuotevření aplikace se pracovní stav obnoví.
+
+## AI asistent
+
+- AI asistent běží na serveru přes OpenAI Agents SDK a vyžaduje proměnnou prostředí `OPENAI_API_KEY`,
+- při odeslání dotazu se na server odešle aktuální profil firmy, zadané doklady, vypočtené souhrny a dosavadní konverzace v panelu asistenta,
+- AI odpovědi jsou pouze informativní a respektují omezený scope tohoto MVP,
+- pokud `OPENAI_API_KEY` chybí, panel zůstane v UI dostupný, ale odpověď se nevygeneruje a uživatel uvidí chybovou hlášku.
 
 ## Budoucí rozšíření
 
@@ -75,7 +84,8 @@ Doporučení pro další implementaci:
 
 - udržovat interní datový model dokladu odděleně od OCR vrstvy,
 - ukládat zvlášť originální soubor, vytěžený JSON a validační chyby,
-- napojit budoucí OCR jako samostatnou službu nad stávajícím formulářovým modelem.
+- napojit budoucí OCR jako samostatnou službu nad stávajícím formulářovým modelem,
+- současného AI asistenta rozšířit o analýzu nahraných dokladů až ve chvíli, kdy bude oddělena OCR vrstva od finálního daňového modelu.
 
 ### XML export pro elektronické podání v ČR
 

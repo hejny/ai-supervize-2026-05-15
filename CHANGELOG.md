@@ -7,3 +7,4 @@
 - Added VAT and corporate income tax summaries for common, non-advanced scenarios.
 - Added documentation for the MVP scope and future OCR/XML integration direction.
 - Added inline validation feedback for incomplete or invalid tax document forms.
+- Added an in-app AI tax assistant powered by the OpenAI Agents SDK for questions about the current company profile, documents, and computed tax summaries.
