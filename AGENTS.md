@@ -1,14 +1,10 @@
-<!-- BEGIN:nextjs-agent-rules -->
-# This is NOT the Next.js you know
-
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
-<!-- END:nextjs-agent-rules -->
 
 
 ## How to Contribute
 
 -   **Add changes in [Changelog](CHANGELOG.md)**
--   **Keep the [Changelog](DOCUMENTATION.md)** up to date with the latest changes and features.
+-   **Keep the [Documentation](DOCUMENTATION.md)** up to date with the latest changes and features.
+-   **Keep the [Context and instructions](AGENTS.md)** up to date with the latest changes and features.
 -   **Test your changes** to ensure they work as expected, use `npm test`
 
 ## Code Style
@@ -72,3 +68,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 -   Do only the change described in the prompt. Do not add any additional features or make any additional changes that are not described there.
     -   If you find some critical issue that is not described in the prompt, report it to `./AGENT_REPORT.md` in the root of the project.
 
+
+
+<!-- BEGIN:nextjs-agent-rules -->
+## This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+<!-- END:nextjs-agent-rules -->
