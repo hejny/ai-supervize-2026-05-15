@@ -7,3 +7,4 @@
 - Added VAT and corporate income tax summaries for common, non-advanced scenarios.
 - Added documentation for the MVP scope and future OCR/XML integration direction.
 - Added inline validation feedback for incomplete or invalid tax document forms.
+- Added a global floating AI tax agent built on OpenAI Agents SDK with Czech-only chat, tool-based data access, and document add/edit/delete actions.

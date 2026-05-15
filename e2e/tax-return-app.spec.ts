@@ -184,29 +184,30 @@ test.describe("Tax return MVP", () => {
     ).toBeVisible();
   });
 
-  test("shows the AI assistant fallback when the API key is missing", async ({
+  test("shows the floating AI agent fallback when the API key is missing", async ({
     page,
   }) => {
     await page.goto("/");
 
-    const aiAssistantSection = getSectionByHeading(
-      page,
-      "AI asistent nad vasimi daty",
-    );
+    await page
+      .getByRole("button", { name: "Otevřít AI daňového agenta" })
+      .click();
 
-    await aiAssistantSection
-      .getByLabel("Dotaz pro asistenta")
-      .fill("Shrn mi aktualni DPH bilanci.");
-    await aiAssistantSection.getByRole("button", { name: "Zeptat se AI" }).click();
+    const aiAgentDialog = page.getByRole("dialog", { name: "AI daňový agent" });
+
+    await aiAgentDialog
+      .getByLabel("Zpráva pro AI agenta")
+      .fill("Shrň mi aktuální DPH bilanci.");
+    await aiAgentDialog.getByRole("button", { name: "Odeslat" }).click();
 
     await expect(
-      aiAssistantSection
+      aiAgentDialog
         .locator("article")
-        .filter({ hasText: "Shrn mi aktualni DPH bilanci." }),
+        .filter({ hasText: "Shrň mi aktuální DPH bilanci." }),
     ).toBeVisible();
     await expect(
-      aiAssistantSection.getByText(
-        "AI asistent neni dostupny, protoze na serveru chybi promenna `OPENAI_API_KEY`.",
+      aiAgentDialog.getByText(
+        "AI daňový agent není dostupný, protože na serveru chybí proměnná `OPENAI_API_KEY`.",
       ),
     ).toBeVisible();
   });

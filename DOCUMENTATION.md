@@ -6,6 +6,7 @@ Tato aplikace je MVP pro jednu českou s.r.o. Uživatel zadává vydané a přij
 
 - základní přiznání k DPH,
 - zjednodušený náhled daňového přiznání k dani z příjmů právnických osob,
+- odpovědi AI agenta nad aktuálními lokálními daty,
 - lokálně uložený pracovní stav v prohlížeči.
 
 ## Co MVP umí
@@ -16,6 +17,9 @@ Tato aplikace je MVP pro jednu českou s.r.o. Uživatel zadává vydané a přij
 - výpočet základu daně, DPH a celkové částky na dokladech,
 - výpočet DPH na výstupu, DPH na vstupu a výsledné bilance,
 - výpočet výnosů, nákladů, daňového základu a daně z příjmů právnických osob,
+- globální plovoucí AI bublinu v pravém dolním rohu dostupnou z každé stránky,
+- AI chat v češtině s diakritikou nad profilem firmy, doklady i vypočtenými souhrny,
+- AI akce pro přidání, úpravu a smazání daňového dokladu pomocí nástrojů,
 - automatické lokální ukládání přes `localStorage`.
 
 ## Co MVP záměrně neřeší
@@ -49,6 +53,16 @@ Tato aplikace je MVP pro jednu českou s.r.o. Uživatel zadává vydané a přij
 - ukládá se profil firmy i zadané doklady,
 - po znovuotevření aplikace se pracovní stav obnoví.
 
+## AI daňový agent
+
+- UI je dostupné jako plovoucí bublina v pravém dolním rohu a je sdílené pro celou aplikaci,
+- serverová část používá OpenAI Agents SDK a nástroje nad aktuálním stavem aplikace,
+- agent umí číst profil firmy, všechny doklady i vypočtené souhrny,
+- agent umí podle instrukce uživatele přidat, upravit a smazat daňový doklad,
+- systémové i uživatelské prompty jsou zapisované přes `prompt` z `@promptbook/utils`,
+- odpovědi agenta jsou omezené pouze na češtinu s diakritikou,
+- bez serverové proměnné `OPENAI_API_KEY` zobrazí chat řízený fallback místo volání modelu.
+
 ## Budoucí rozšíření
 
 Architektura MVP odděluje:
@@ -69,6 +83,7 @@ Díky tomu lze později doplnit:
 
 - OpenAI Agents SDK (JS/TS): `https://openai.github.io/openai-agents-js/guides/agents`
 - Spouštění agentů a orchestrace workflow: `https://openai.github.io/openai-agents-js/guides/running-agents`
+- Nástroje agentů: `https://openai.github.io/openai-agents-js/guides/tools`
 - Oficiální práce s obrázky ve OpenAI API: `https://developers.openai.com/api/docs/guides/images`
 
 Doporučení pro další implementaci:
