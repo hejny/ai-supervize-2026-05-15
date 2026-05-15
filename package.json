@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test": "npm run lint && npm run build",
     "lint": "eslint",
     "coder:generate-boilerplates": "npx ptbk coder generate-boilerplates --template ./prompts/templates/common.md",
     "coder:run": "npx ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level medium --context AGENTS.md --no-wait",

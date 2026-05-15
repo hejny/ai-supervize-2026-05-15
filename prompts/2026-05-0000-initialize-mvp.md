@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.00 11 minutes by GitHub Copilot `gpt-5.4`
 
 [✨🎐] Vyrob appku na daňové přiznání, která bude mít tyto funkce:
 
@@ -20,3 +20,4 @@
 - Do budoucna je potřeba vytěžit data z dokladů (najdi nějakou knihovnu pro OCR, která umí vytěžit data z faktur a implementuj to do appky)
     - Nepoužívej generické OCR, ale rovnou použij Agents SDK od OpenAI, který umí využít modely pro vytěžování dat z faktur a dokladů.
 - Bude potřeba export do xml (najdi dokumentaci pro elektronické podání daňového přiznání v ČR a implementuj export do xml podle této dokumentace)
+

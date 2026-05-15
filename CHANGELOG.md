@@ -1,0 +1,8 @@
+# Changelog
+
+## 2026-05-15
+
+- Added an MVP single-company tax dashboard for Czech s.r.o. workflows.
+- Added local browser persistence for company data, documents, and computed tax return state.
+- Added VAT and corporate income tax summaries for common, non-advanced scenarios.
+- Added documentation for the MVP scope and future OCR/XML integration direction.
