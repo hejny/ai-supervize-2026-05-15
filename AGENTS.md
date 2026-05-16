@@ -34,7 +34,6 @@
 
 -   Attached images (if any) are relative to the root of the project.
 -   Aktuální MVP zobrazuje inline validační chyby ve formulářích pro zadání daňových dokladů.
--   Aplikace nově obsahuje globální plovoucí AI daňový agent v pravém dolním rohu, který komunikuje pouze česky s diakritikou a přes nástroje umí číst i měnit lokální stav dokladů.
 
 
 <!--

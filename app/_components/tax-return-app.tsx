@@ -1,19 +1,24 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type {
+  TaxApplicationState,
   TaxDocument,
   TaxDocumentKind,
   VatRatePercent,
 } from "@/lib/tax-calculations";
-import { useTaxApplicationState } from "@/app/_components/tax-application-state-provider";
 import {
   VAT_PERIOD_OPTIONS,
   VAT_RATE_OPTIONS,
+  DEFAULT_TAX_APPLICATION_STATE,
   calculateDocumentTotals,
   calculateTaxComputationResult,
+  normalizeTaxApplicationState,
+  roundCurrency,
 } from "@/lib/tax-calculations";
-import { roundCurrency } from "@/lib/tax-calculations";
+
+/** Browser storage key used by the MVP workspace. */
+const TAX_APPLICATION_LOCAL_STORAGE_KEY = "tax-return-mvp-state-v1";
 
 /** Currency formatter shared by all monetary UI elements. */
 const CURRENCY_FORMATTER = new Intl.NumberFormat("cs-CZ", {
@@ -317,15 +322,8 @@ function DocumentTable({ taxDocuments, onDelete }: DocumentTableProps) {
  * @returns Complete MVP UI for VAT and tax return preparation.
  */
 export default function TaxReturnApp() {
-  const {
-    storageStatusMessage,
-    setStorageStatusMessage,
-    taxApplicationState,
-    updateCompanyProfileField,
-    addTaxDocument,
-    deleteTaxDocument,
-    resetTaxApplicationState,
-  } = useTaxApplicationState();
+  const [taxApplicationState, setTaxApplicationState] =
+    useState<TaxApplicationState>(DEFAULT_TAX_APPLICATION_STATE);
   const [taxDocumentDrafts, setTaxDocumentDrafts] = useState<
     Record<TaxDocumentKind, TaxDocumentDraft>
   >({
@@ -337,6 +335,57 @@ export default function TaxReturnApp() {
       issued: createEmptyTaxDocumentDraftValidationErrors(),
       received: createEmptyTaxDocumentDraftValidationErrors(),
     });
+  const [isStorageReady, setIsStorageReady] = useState(false);
+  const [storageStatusMessage, setStorageStatusMessage] = useState(
+    "Načítám lokálně uložená data…",
+  );
+
+  useEffect(() => {
+    const animationFrameId = window.requestAnimationFrame(() => {
+      try {
+        const storedValue = window.localStorage.getItem(
+          TAX_APPLICATION_LOCAL_STORAGE_KEY,
+        );
+
+        if (storedValue) {
+          const parsedValue = JSON.parse(storedValue) as unknown;
+          setTaxApplicationState(normalizeTaxApplicationState(parsedValue));
+          setStorageStatusMessage(
+            "Doklady a přiznání se ukládají automaticky do tohoto prohlížeče.",
+          );
+        } else {
+          setStorageStatusMessage(
+            "Pracujete s novým přehledem. Data se budou ukládat automaticky.",
+          );
+        }
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Nepodařilo se načíst data.";
+
+        window.localStorage.removeItem(TAX_APPLICATION_LOCAL_STORAGE_KEY);
+        setStorageStatusMessage(
+          `Lokální data byla neplatná a byla resetována: ${errorMessage}`,
+        );
+      } finally {
+        setIsStorageReady(true);
+      }
+    });
+
+    return () => {
+      window.cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isStorageReady) {
+      return;
+    }
+
+    window.localStorage.setItem(
+      TAX_APPLICATION_LOCAL_STORAGE_KEY,
+      JSON.stringify(taxApplicationState),
+    );
+  }, [isStorageReady, taxApplicationState]);
 
   const taxComputationResult = useMemo(
     () => calculateTaxComputationResult(taxApplicationState.taxDocuments),
@@ -349,6 +398,19 @@ export default function TaxReturnApp() {
     ({ kind }) => kind === "received",
   );
   const isVatPayable = taxComputationResult.vatSummary.vatBalanceAmount >= 0;
+
+  function updateCompanyProfileField(
+    fieldName: keyof TaxApplicationState["companyProfile"],
+    fieldValue: string,
+  ) {
+    setTaxApplicationState((currentTaxApplicationState) => ({
+      ...currentTaxApplicationState,
+      companyProfile: {
+        ...currentTaxApplicationState.companyProfile,
+        [fieldName]: fieldValue,
+      },
+    }));
+  }
 
   function updateTaxDocumentDraftField(
     kind: TaxDocumentKind,
@@ -396,7 +458,8 @@ export default function TaxReturnApp() {
     }
 
     const parsedBaseAmount = parseTaxDocumentDraftBaseAmount(draft.baseAmount);
-    addTaxDocument({
+    const nextTaxDocument: TaxDocument = {
+      id: `${kind}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
       kind,
       documentNumber: draft.documentNumber.trim(),
       partnerName: draft.partnerName.trim(),
@@ -404,7 +467,12 @@ export default function TaxReturnApp() {
       description: draft.description.trim(),
       baseAmount: roundCurrency(parsedBaseAmount),
       vatRatePercent: draft.vatRatePercent,
-    });
+    };
+
+    setTaxApplicationState((currentTaxApplicationState) => ({
+      ...currentTaxApplicationState,
+      taxDocuments: [nextTaxDocument, ...currentTaxApplicationState.taxDocuments],
+    }));
     setTaxDocumentDrafts((currentDrafts) => ({
       ...currentDrafts,
       [kind]: createEmptyTaxDocumentDraft(),
@@ -413,10 +481,19 @@ export default function TaxReturnApp() {
       ...currentValidationErrors,
       [kind]: createEmptyTaxDocumentDraftValidationErrors(),
     }));
+    setStorageStatusMessage(
+      `${DOCUMENT_KIND_LABELS[kind]} byly aktualizovány a uložené lokálně.`,
+    );
   }
 
   function handleDeleteTaxDocument(taxDocumentId: string) {
-    deleteTaxDocument(taxDocumentId);
+    setTaxApplicationState((currentTaxApplicationState) => ({
+      ...currentTaxApplicationState,
+      taxDocuments: currentTaxApplicationState.taxDocuments.filter(
+        ({ id }) => id !== taxDocumentId,
+      ),
+    }));
+    setStorageStatusMessage("Doklad byl odstraněn a změna byla uložena.");
   }
 
   function handleResetWorkspace() {
@@ -428,7 +505,8 @@ export default function TaxReturnApp() {
       return;
     }
 
-    resetTaxApplicationState();
+    window.localStorage.removeItem(TAX_APPLICATION_LOCAL_STORAGE_KEY);
+    setTaxApplicationState(DEFAULT_TAX_APPLICATION_STATE);
     setTaxDocumentDrafts({
       issued: createEmptyTaxDocumentDraft(),
       received: createEmptyTaxDocumentDraft(),
@@ -437,6 +515,7 @@ export default function TaxReturnApp() {
       issued: createEmptyTaxDocumentDraftValidationErrors(),
       received: createEmptyTaxDocumentDraftValidationErrors(),
     });
+    setStorageStatusMessage("Lokálně uložená data byla smazána.");
   }
 
   return (

@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import FloatingAiAgent from "@/app/_components/floating-ai-agent";
-import { TaxApplicationStateProvider } from "@/app/_components/tax-application-state-provider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -31,12 +29,7 @@ export default function RootLayout({
       lang="cs"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
-        <TaxApplicationStateProvider>
-          {children}
-          <FloatingAiAgent />
-        </TaxApplicationStateProvider>
-      </body>
+      <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
 }
