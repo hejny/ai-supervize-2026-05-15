@@ -34,6 +34,9 @@
 
 -   Attached images (if any) are relative to the root of the project.
 -   Aktuální MVP zobrazuje inline validační chyby ve formulářích pro zadání daňových dokladů.
+-   AI asistent je dostupný jako plovoucí bublina vpravo dole a používá route `app/api/tax-agent/route.ts`.
+-   AI asistent musí komunikovat česky s diakritikou, používat OpenAI Agents SDK tools pro čtení a změny dokladů a prompt texty zapisovat přes `prompt` z `@promptbook/utils`.
+-   Stav daňové aplikace se stále ukládá do `localStorage` pod klíčem `tax-return-mvp-state-v1`; změny z AI bubliny se do hlavního formuláře předávají přes browser event `tax-application-state-replaced`.
 
 
 <!--

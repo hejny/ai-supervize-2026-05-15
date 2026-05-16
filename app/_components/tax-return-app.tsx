@@ -16,9 +16,11 @@ import {
   normalizeTaxApplicationState,
   roundCurrency,
 } from "@/lib/tax-calculations";
-
-/** Browser storage key used by the MVP workspace. */
-const TAX_APPLICATION_LOCAL_STORAGE_KEY = "tax-return-mvp-state-v1";
+import {
+  TAX_APPLICATION_LOCAL_STORAGE_KEY,
+  TAX_APPLICATION_STATE_REPLACED_EVENT_NAME,
+  type TaxApplicationStateReplacedEvent,
+} from "@/lib/tax-application-storage";
 
 /** Currency formatter shared by all monetary UI elements. */
 const CURRENCY_FORMATTER = new Intl.NumberFormat("cs-CZ", {
@@ -386,6 +388,37 @@ export default function TaxReturnApp() {
       JSON.stringify(taxApplicationState),
     );
   }, [isStorageReady, taxApplicationState]);
+
+  useEffect(() => {
+    /**
+     * Applies workspace updates produced outside this form, such as AI chat tools.
+     *
+     * @param event Browser event containing the replacement tax workspace.
+     */
+    function handleTaxApplicationStateReplaced(event: Event): void {
+      const taxApplicationStateReplacedEvent =
+        event as TaxApplicationStateReplacedEvent;
+
+      setTaxApplicationState(
+        normalizeTaxApplicationState(
+          taxApplicationStateReplacedEvent.detail.taxApplicationState,
+        ),
+      );
+      setStorageStatusMessage(taxApplicationStateReplacedEvent.detail.statusMessage);
+    }
+
+    window.addEventListener(
+      TAX_APPLICATION_STATE_REPLACED_EVENT_NAME,
+      handleTaxApplicationStateReplaced,
+    );
+
+    return () => {
+      window.removeEventListener(
+        TAX_APPLICATION_STATE_REPLACED_EVENT_NAME,
+        handleTaxApplicationStateReplaced,
+      );
+    };
+  }, []);
 
   const taxComputationResult = useMemo(
     () => calculateTaxComputationResult(taxApplicationState.taxDocuments),

@@ -16,6 +16,8 @@ Tato aplikace je MVP pro jednu českou s.r.o. Uživatel zadává vydané a přij
 - výpočet základu daně, DPH a celkové částky na dokladech,
 - výpočet DPH na výstupu, DPH na vstupu a výsledné bilance,
 - výpočet výnosů, nákladů, daňového základu a daně z příjmů právnických osob,
+- plovoucí AI asistent pro dotazy nad profilem firmy, doklady a souhrny,
+- přidávání, úpravy a mazání daňových dokladů přes chat s AI asistentem,
 - automatické lokální ukládání přes `localStorage`.
 
 ## Co MVP záměrně neřeší
@@ -48,6 +50,20 @@ Tato aplikace je MVP pro jednu českou s.r.o. Uživatel zadává vydané a přij
 - používá se klíč `tax-return-mvp-state-v1`,
 - ukládá se profil firmy i zadané doklady,
 - po znovuotevření aplikace se pracovní stav obnoví.
+
+## AI asistent
+
+- AI asistent je dostupný jako plovoucí bublina vpravo dole na každé stránce aplikace.
+- Frontend posílá serverové route `/api/tax-agent` aktuální lokální stav aplikace a poslední zprávy chatu.
+- Server používá OpenAI Agents SDK a nástroje:
+  - `get_tax_workspace_data` pro načtení profilu firmy, dokladů a vypočtených souhrnů,
+  - `add_tax_document` pro přidání vydaného nebo přijatého dokladu,
+  - `edit_tax_document` pro úpravu jednoho existujícího dokladu,
+  - `delete_tax_document` pro smazání jednoho existujícího dokladu.
+- Systémové instrukce a prompt pro běh agenta používají `prompt` notaci z `@promptbook/utils`.
+- Agent má komunikovat pouze česky a s diakritikou.
+- Pro volání OpenAI je potřeba serverová proměnná `OPENAI_API_KEY`.
+- Pokud agent změní doklady, vrácený normalizovaný stav se uloží zpět do `localStorage` a hlavní přehled se okamžitě přepočítá.
 
 ## Budoucí rozšíření
 

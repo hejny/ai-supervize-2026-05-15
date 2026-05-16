@@ -184,30 +184,125 @@ test.describe("Tax return MVP", () => {
     ).toBeVisible();
   });
 
-  test("shows the AI assistant fallback when the API key is missing", async ({
+  test("shows the floating AI assistant fallback from the server", async ({
     page,
   }) => {
+    await page.route("**/api/tax-agent", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          assistantMessage:
+            "AI asistent není dostupný, protože na serveru chybí proměnná `OPENAI_API_KEY`.",
+          taxApplicationState: {
+            companyProfile: {
+              companyName: "",
+              companyRegistrationNumber: "",
+              taxIdentificationNumber: "",
+              taxYear: "2026",
+              vatPeriod: "monthly",
+            },
+            taxDocuments: [],
+          },
+          isTaxApplicationStateChanged: false,
+          appliedChangeMessages: [],
+        }),
+      });
+    });
+
     await page.goto("/");
 
-    const aiAssistantSection = getSectionByHeading(
-      page,
-      "AI asistent nad vasimi daty",
-    );
+    await page.getByRole("button", { name: "Otevřít AI asistenta" }).click();
 
-    await aiAssistantSection
-      .getByLabel("Dotaz pro asistenta")
-      .fill("Shrn mi aktualni DPH bilanci.");
-    await aiAssistantSection.getByRole("button", { name: "Zeptat se AI" }).click();
+    const aiAssistant = page.locator('aside[aria-label="AI asistent"]');
+
+    await aiAssistant
+      .getByLabel("Zpráva pro AI asistenta")
+      .fill("Shrň mi aktuální DPH bilanci.");
+    await aiAssistant.getByRole("button", { name: "Odeslat zprávu" }).click();
 
     await expect(
-      aiAssistantSection
+      aiAssistant
         .locator("article")
-        .filter({ hasText: "Shrn mi aktualni DPH bilanci." }),
+        .filter({ hasText: "Shrň mi aktuální DPH bilanci." }),
     ).toBeVisible();
     await expect(
-      aiAssistantSection.getByText(
-        "AI asistent neni dostupny, protoze na serveru chybi promenna `OPENAI_API_KEY`.",
+      aiAssistant.getByText(
+        "AI asistent není dostupný, protože na serveru chybí proměnná `OPENAI_API_KEY`.",
       ),
+    ).toBeVisible();
+  });
+
+  test("applies tax document changes returned by the AI assistant", async ({
+    page,
+  }) => {
+    await page.route("**/api/tax-agent", async (route) => {
+      const requestBody = route.request().postDataJSON() as {
+        taxApplicationState: {
+          companyProfile: {
+            companyName: string;
+            companyRegistrationNumber: string;
+            taxIdentificationNumber: string;
+            taxYear: string;
+            vatPeriod: string;
+          };
+          taxDocuments: unknown[];
+        };
+      };
+
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          assistantMessage: "Přidal jsem vydaný doklad `2026-AI-001`.",
+          taxApplicationState: {
+            companyProfile: requestBody.taxApplicationState.companyProfile,
+            taxDocuments: [
+              {
+                id: "agent-issued-e2e",
+                kind: "issued",
+                documentNumber: "2026-AI-001",
+                partnerName: "AI Odběratel s.r.o.",
+                taxableDate: "2026-02-10",
+                description: "Služby doplněné přes chat",
+                baseAmount: 1000,
+                vatRatePercent: 21,
+              },
+              ...requestBody.taxApplicationState.taxDocuments,
+            ],
+          },
+          isTaxApplicationStateChanged: true,
+          appliedChangeMessages: ["Doklad `2026-AI-001` byl přidán."],
+        }),
+      });
+    });
+
+    await page.goto("/");
+
+    await page.getByRole("button", { name: "Otevřít AI asistenta" }).click();
+
+    const aiAssistant = page.locator('aside[aria-label="AI asistent"]');
+
+    await aiAssistant
+      .getByLabel("Zpráva pro AI asistenta")
+      .fill("Přidej vydaný doklad 2026-AI-001 na 1000 Kč bez DPH.");
+    await aiAssistant.getByRole("button", { name: "Odeslat zprávu" }).click();
+
+    await expect(
+      aiAssistant.getByText("Přidal jsem vydaný doklad `2026-AI-001`."),
+    ).toBeVisible();
+    await expect(getSectionByHeading(page, "Vydané doklady")).toContainText(
+      "2026-AI-001",
+    );
+    await expect(getSectionByHeading(page, "Vydané doklady")).toContainText(
+      "AI Odběratel s.r.o.",
+    );
+    await expect(getSummaryCard(page, "Vydané doklady")).toContainText("1");
+    await expect(getSummaryCard(page, "DPH bilance")).toContainText(
+      formatCurrency(210),
+    );
+    await expect(
+      page.getByText("AI asistent: Doklad `2026-AI-001` byl přidán."),
     ).toBeVisible();
   });
 });
