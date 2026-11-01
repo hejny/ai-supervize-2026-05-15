@@ -34,5 +34,15 @@
         "tailwindcss": "^4",
         "typescript": "^5"
     },
-    "license": "Apache-2.0"
+    "license": "Apache-2.0",
+    "funding": [
+        {
+            "type": "individual",
+            "url": "https://buymeacoffee.com/hejny"
+        },
+        {
+            "type": "github",
+            "url": "https://github.com/hejny/ai-supervize-2026-05-15/blob/main/README.md#%EF%B8%8F-contributing"
+        }
+    ]
 }
