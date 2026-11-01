@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import {
+  TAX_APPLICATION_LOCAL_STORAGE_KEY,
+  TAX_APPLICATION_STATE_REPLACED_EVENT_NAME,
+  type TaxApplicationStateReplacedEvent,
+} from "@/lib/tax-application-storage";
 import type {
   TaxApplicationState,
   TaxDocument,
@@ -8,19 +12,15 @@ import type {
   VatRatePercent,
 } from "@/lib/tax-calculations";
 import {
+  DEFAULT_TAX_APPLICATION_STATE,
   VAT_PERIOD_OPTIONS,
   VAT_RATE_OPTIONS,
-  DEFAULT_TAX_APPLICATION_STATE,
   calculateDocumentTotals,
   calculateTaxComputationResult,
   normalizeTaxApplicationState,
   roundCurrency,
 } from "@/lib/tax-calculations";
-import {
-  TAX_APPLICATION_LOCAL_STORAGE_KEY,
-  TAX_APPLICATION_STATE_REPLACED_EVENT_NAME,
-  type TaxApplicationStateReplacedEvent,
-} from "@/lib/tax-application-storage";
+import { useEffect, useMemo, useState } from "react";
 
 /** Currency formatter shared by all monetary UI elements. */
 const CURRENCY_FORMATTER = new Intl.NumberFormat("cs-CZ", {

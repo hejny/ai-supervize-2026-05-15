@@ -1,6 +1,6 @@
+import AiAgentBubble from "@/app/_components/ai-agent-bubble";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import AiAgentBubble from "@/app/_components/ai-agent-bubble";
 import "./globals.css";
 
 const geistSans = Geist({

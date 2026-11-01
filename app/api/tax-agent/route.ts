@@ -1,7 +1,3 @@
-import { randomUUID } from "node:crypto";
-import { Agent, Runner, tool, type RunContext } from "@openai/agents";
-import { prompt } from "@promptbook/utils";
-import { z } from "zod";
 import type {
   TaxApplicationState,
   TaxDocument,
@@ -13,6 +9,10 @@ import {
   normalizeTaxApplicationState,
   roundCurrency,
 } from "@/lib/tax-calculations";
+import { Agent, Runner, tool, type RunContext } from "@openai/agents";
+import { prompt } from "@promptbook/utils";
+import { randomUUID } from "node:crypto";
+import { z } from "zod";
 
 /** Ensures the OpenAI Agents SDK runs in the Node.js runtime. */
 export const runtime = "nodejs";

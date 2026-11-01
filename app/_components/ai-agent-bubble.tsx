@@ -1,15 +1,15 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import {
+  TAX_APPLICATION_LOCAL_STORAGE_KEY,
+  dispatchTaxApplicationStateReplacedEvent,
+} from "@/lib/tax-application-storage";
 import type { TaxApplicationState } from "@/lib/tax-calculations";
 import {
   DEFAULT_TAX_APPLICATION_STATE,
   normalizeTaxApplicationState,
 } from "@/lib/tax-calculations";
-import {
-  TAX_APPLICATION_LOCAL_STORAGE_KEY,
-  dispatchTaxApplicationStateReplacedEvent,
-} from "@/lib/tax-application-storage";
+import { useState, type FormEvent } from "react";
 
 /** Maximum number of prior messages sent to the server for context. */
 const MAX_CLIENT_CHAT_HISTORY_MESSAGES = 10;
