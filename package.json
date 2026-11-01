@@ -1,37 +1,38 @@
 {
-  "name": "ai-supervize-2026-05-15",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "test": "npm run lint && npm run test:e2e",
-    "test:e2e": "npm run build && playwright test",
-    "lint": "eslint",
-    "coder:generate-boilerplates": "npx ptbk coder generate-boilerplates --template ./prompts/templates/common.md",
-    "coder:run": "npx ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level medium --context AGENTS.md --no-wait",
-    "coder:find-refactor-candidates": "npx ptbk coder find-refactor-candidates",
-    "coder:verify": "npx ptbk coder verify"
-  },
-  "dependencies": {
-    "@openai/agents": "^0.11.4",
-    "@promptbook/utils": "^0.114.0-51",
-    "next": "16.2.6",
-    "ptbk": "^0.119.0-45",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
-    "zod": "^4.4.3"
-  },
-  "devDependencies": {
-    "@playwright/test": "^1.60.0",
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.2.6",
-    "tailwindcss": "^4",
-    "typescript": "^5"
-  }
+    "name": "ai-supervize-2026-05-15",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "dev": "next dev",
+        "build": "next build",
+        "start": "next start",
+        "test": "npm run lint && npm run test:e2e",
+        "test:e2e": "npm run build && playwright test",
+        "lint": "eslint",
+        "coder:generate-boilerplates": "npx ptbk coder generate-boilerplates --template ./prompts/templates/common.md",
+        "coder:run": "npx ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level medium --context AGENTS.md --no-wait",
+        "coder:find-refactor-candidates": "npx ptbk coder find-refactor-candidates",
+        "coder:verify": "npx ptbk coder verify"
+    },
+    "dependencies": {
+        "@openai/agents": "^0.11.4",
+        "@promptbook/utils": "^0.114.0-51",
+        "next": "16.2.6",
+        "ptbk": "^0.119.0-45",
+        "react": "19.2.4",
+        "react-dom": "19.2.4",
+        "zod": "^4.4.3"
+    },
+    "devDependencies": {
+        "@playwright/test": "^1.60.0",
+        "@tailwindcss/postcss": "^4",
+        "@types/node": "^20",
+        "@types/react": "^19",
+        "@types/react-dom": "^19",
+        "eslint": "^9",
+        "eslint-config-next": "16.2.6",
+        "tailwindcss": "^4",
+        "typescript": "^5"
+    },
+    "license": "Apache-2.0"
 }
